@@ -1,0 +1,118 @@
+body {
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+    Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
+}
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+#root {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  width: 100vw;
+}
+
+iframe {
+  border: 0;
+  border-left: 1px solid grey;
+}
+.toolbar {
+  height: 4rem;
+  display: flex;
+  padding: 1rem;
+  align-items: center;
+  gap: 0.5rem;
+  background: linear-gradient(to bottom, #fff, #ccc);
+  border-bottom: 1px solid grey;
+  box-shadow: inset 0 -1px 0 white;
+}
+.main {
+  flex-grow: 1;
+  display: flex;
+  max-height: calc(100vh - 4rem);
+  & > iframe {
+    flex-grow: 1;
+  }
+  & > .editors {
+    width: 30vw;
+    min-width: 30rem;
+    max-height: 100%;
+    display: flex;
+    flex-direction: column;
+
+    & > div {
+      overflow: auto;
+      &:not(:has(.editor.hidden)) {
+        flex: 1;
+      }
+      & h3 {
+        padding: 0.2rem 0.5rem;
+        background: linear-gradient(to bottom, #fff, #ccc);
+        border-block: 1px solid lightgrey;
+        box-shadow: inset 0 -1px 0 white;
+        position: sticky;
+        top: 0;
+        cursor: pointer;
+        user-select: none;
+        z-index: 9;
+      }
+    }
+  }
+}
+
+::-webkit-scrollbar {
+  appearance: none;
+  overflow: hidden;
+  width: 13px;
+}
+
+::-webkit-scrollbar-track {
+  appearance: none;
+  background: linear-gradient(to right, #ccc, #fff);
+  border-top: 1px solid #ccc;
+  border-left: 1px solid #aaa;
+}
+
+::-webkit-scrollbar-thumb {
+  appearance: none;
+  box-shadow: 2px 3px 5px #0004, inset 1px 0 0 #ccc;
+  background: linear-gradient(to right, #fff, #ddd);
+}
+
+.hidden {
+  display: none;
+}
+
+button {
+  font-family: inherit;
+  padding: 0.5rem 1rem;
+  border-radius: 999rem;
+  cursor: pointer;
+  border: 1px solid grey;
+  box-shadow: 0 -3px 2px #0002, 0 3px 2px #fff, inset 0 0 9px #0004;
+  background: linear-gradient(to bottom, #fff, #ccc);
+  text-shadow: 0 -1px 1px #0004, 0 1px 1px #fff;
+  transition: all 0.1s;
+  & span {
+    display: flex;
+    transition: all 0.1s;
+  }
+  &:active {
+    color: #4488aa;
+    box-shadow: 0 -3px 2px #0002, 0 3px 2px #fff, inset 0 0 9px #0008;
+    & span {
+      scale: 0.9;
+    }
+  }
+}
+
+input {
+  padding: 0.5rem;
+  font-family: inherit;
+  border-radius: 9999rem;
+  outline: none;
+  border: 1px solid grey;
+  box-shadow: 0 -3px 2px #0002, 0 3px 2px #fff, inset 0 4px 9px #0004;
+}
