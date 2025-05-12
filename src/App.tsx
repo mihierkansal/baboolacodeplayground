@@ -1,9 +1,17 @@
-import { createEffect, createSignal, onMount, type Signal } from "solid-js";
+import {
+  createEffect,
+  createSignal,
+  For,
+  onMount,
+  type Signal,
+} from "solid-js";
 import { basicSetup, EditorView } from "codemirror";
 
 import { javascript } from "@codemirror/lang-javascript";
 import { html } from "@codemirror/lang-html";
 import { css } from "@codemirror/lang-css";
+
+import "baboolastyles/public/plastic.css";
 
 function App() {
   let ifr!: HTMLIFrameElement;
@@ -16,18 +24,37 @@ function App() {
 
   const jsCode = createSignal("");
 
+  const codeErrors = createSignal<string[]>([]);
+
   const htmlEditorVis = createSignal(true);
 
   const cssEditorVis = createSignal(true);
 
   const jsEditorVis = createSignal(true);
 
+  const errorsVis = createSignal(true);
+
   const projName = createSignal("");
 
   onMount(() => {
     setupEditors();
-
     createEffect(() => {
+      codeErrors[1]([]);
+      try {
+        new Function(jsCode[0]());
+      } catch (e) {
+        codeErrors[1]((v) => {
+          v.push(
+            (e as any).name +
+              ": " +
+              ((e as any).message === "Unexpected token }" ||
+              (e as any).message === "Unexpected token '}'"
+                ? "Likely a standalone keyword, function with no implementation, or incorrectly closed braces."
+                : (e as any).message)
+          );
+          return [...v];
+        });
+      }
       const output = `
       <!DOCTYPE html>
       <html>
@@ -40,12 +67,27 @@ function App() {
       <body>
       ${htmlCode[0]()}
       <script>
+       window.onerror=(e)=>{
+parent.postMessage({type: 'codeError', error: e}, "*")
+     }
+ 
       ${jsCode[0]()}
+     
+        
       <\/script>
       </body>
       </html>
       `;
-      ifr!.srcdoc = output;
+      ifr.srcdoc = output;
+    });
+
+    window.addEventListener("message", (e) => {
+      if (e.data.type === "codeError") {
+        codeErrors[1]((v) => {
+          v.push(e.data.error.toString());
+          return [...v];
+        });
+      }
     });
   });
 
@@ -68,6 +110,7 @@ function App() {
       extension: css(),
     });
   }
+
   return (
     <>
       <div class="toolbar">
@@ -122,6 +165,7 @@ function App() {
         <div class="editors">
           <div>
             <h3
+              class="section-header"
               onClick={() => {
                 htmlEditorVis[1]((v) => !v);
               }}
@@ -138,6 +182,7 @@ function App() {
 
           <div>
             <h3
+              class="section-header"
               onClick={() => {
                 cssEditorVis[1]((v) => !v);
               }}
@@ -154,6 +199,7 @@ function App() {
 
           <div>
             <h3
+              class="section-header"
               onClick={() => {
                 jsEditorVis[1]((v) => !v);
               }}
@@ -168,10 +214,29 @@ function App() {
             ></div>
           </div>
         </div>
-        <iframe
-          ref={ifr}
-          allow="microphone; camera; autoplay; display-capture; clipboard-write"
-        ></iframe>
+        <div class="rightside">
+          <iframe
+            ref={ifr}
+            allow="microphone; camera; autoplay; display-capture; clipboard-write"
+          ></iframe>
+          <div class="errors">
+            <h3
+              class="section-header"
+              onClick={() => {
+                errorsVis[1]((v) => !v);
+              }}
+            >
+              ERRORS
+            </h3>
+            <div class="errors-main" classList={{ hidden: !errorsVis[0]() }}>
+              <For each={codeErrors[0]()}>
+                {(err) => {
+                  return <div class="error">{err}</div>;
+                }}
+              </For>
+            </div>
+          </div>
+        </div>
       </div>
     </>
   );
