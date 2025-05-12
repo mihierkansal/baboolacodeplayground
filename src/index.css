@@ -31,12 +31,12 @@ iframe {
   width: 100%;
   & > .errors-main {
     height: 7rem;
-  }
-  & > .error {
-    font-size: 0.8rem;
-    padding: 0.5rem;
-    background: #f001;
-    color: #900;
+    & > .error {
+      font-size: 0.8rem;
+      padding: 0.5rem;
+      background: #f001;
+      color: #900;
+    }
   }
 }
 .toolbar {
