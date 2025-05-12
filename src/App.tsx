@@ -45,10 +45,7 @@ function App() {
       </body>
       </html>
       `;
-
-      ifr.contentWindow?.document.open();
-      ifr.contentWindow?.document.write(output);
-      ifr.contentWindow?.document.close();
+      ifr!.srcdoc = output;
     });
   });
 
