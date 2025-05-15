@@ -24,7 +24,9 @@ function App() {
 
   const jsCode = createSignal("");
 
-  const codeErrors = createSignal<string[]>([]);
+  const consoleMessages = createSignal<
+    { text: string; type: "error" | "message" }[]
+  >([]);
 
   const htmlEditorVis = createSignal(true);
 
@@ -32,33 +34,47 @@ function App() {
 
   const jsEditorVis = createSignal(true);
 
-  const errorsVis = createSignal(true);
+  const consoleVis = createSignal(true);
 
   const projName = createSignal("");
 
   onMount(() => {
     setupEditors();
     createEffect(() => {
-      codeErrors[1]([]);
-      try {
-        new Function(jsCode[0]());
-      } catch (e) {
-        codeErrors[1]((v) => {
-          v.push(
-            (e as any).name +
-              ": " +
-              ((e as any).message === "Unexpected token }" ||
-              (e as any).message === "Unexpected token '}'"
-                ? "Likely a standalone keyword, function with no implementation, or incorrectly closed braces."
-                : (e as any).message)
-          );
-          return [...v];
-        });
-      }
+      consoleMessages[1]([]);
+
       const output = `
       <!DOCTYPE html>
       <html>
       <head>
+      <script>
+      function customStringify(obj) {
+     if (typeof obj !== "object" || obj === null) {
+        return String(obj); // Convert primitive types to strings
+    }
+
+    let result = "{";
+    for (let key in obj) {
+        if (false && obj.hasOwnProperty(key) && key !== "parent" && key !== "window" && key!=="frames" && key!=="self"  ) {
+
+            result += '"'+key+'": "'+customStringify(obj[key])+'",';
+        }
+    }
+
+    return result.length > 1 ? result.slice(0, -1) + "}" : "{}"; // Remove trailing comma and close object
+}
+      window.onerror=(e)=>{
+      parent.postMessage({type: 'codeError', error: e}, "*")
+        }
+     
+const O_CL = console.log;
+      window.console.log=(...args)=>{
+      O_CL(...args)
+      args.forEach((arg)=>{
+        parent.postMessage({type: 'consoleLog', msg:customStringify(arg)}, "*")
+    })
+      }
+      </script>
       <title>Webpage</title>
       <style>
       ${cssCode[0]()}
@@ -67,10 +83,6 @@ function App() {
       <body>
       ${htmlCode[0]()}
       <script>
-       window.onerror=(e)=>{
-parent.postMessage({type: 'codeError', error: e}, "*")
-     }
- 
       ${jsCode[0]()}
      
         
@@ -78,13 +90,19 @@ parent.postMessage({type: 'codeError', error: e}, "*")
       </body>
       </html>
       `;
+
       ifr.srcdoc = output;
     });
 
     window.addEventListener("message", (e) => {
       if (e.data.type === "codeError") {
-        codeErrors[1]((v) => {
-          v.push(e.data.error.toString());
+        consoleMessages[1]((v) => {
+          v.push({ text: e.data.error.toString(), type: "error" });
+          return [...v];
+        });
+      } else if (e.data.type === "consoleLog") {
+        consoleMessages[1]((v) => {
+          v.push({ text: e.data.msg.toString(), type: "message" });
           return [...v];
         });
       }
@@ -219,19 +237,19 @@ parent.postMessage({type: 'codeError', error: e}, "*")
             ref={ifr}
             allow="microphone; camera; autoplay; display-capture; clipboard-write"
           ></iframe>
-          <div class="errors">
+          <div class="console">
             <h3
               class="section-header"
               onClick={() => {
-                errorsVis[1]((v) => !v);
+                consoleVis[1]((v) => !v);
               }}
             >
-              ERRORS
+              CONSOLE
             </h3>
-            <div class="errors-main" classList={{ hidden: !errorsVis[0]() }}>
-              <For each={codeErrors[0]()}>
-                {(err) => {
-                  return <div class="error">{err}</div>;
+            <div class="console-main" classList={{ hidden: !consoleVis[0]() }}>
+              <For each={consoleMessages[0]()}>
+                {(m) => {
+                  return <div class={m.type}>{m.text}</div>;
                 }}
               </For>
             </div>

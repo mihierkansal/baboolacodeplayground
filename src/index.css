@@ -26,11 +26,11 @@ iframe {
   flex-grow: 1;
   flex-direction: column;
 }
-.errors {
+.console {
   border-top: 1px solid grey;
   width: 100%;
   overflow: auto;
-  & > .errors-main {
+  & > .console-main {
     height: 7rem;
     & > .error {
       font-size: 0.8rem;
@@ -38,6 +38,13 @@ iframe {
       background: #f001;
       color: #a00;
       border-bottom: 1px solid #f003;
+    }
+    & > .message {
+      font-size: 0.8rem;
+      padding: 0.5rem;
+      background: #00000008;
+      color: #000;
+      border-bottom: 1px solid #0002;
     }
   }
 }
